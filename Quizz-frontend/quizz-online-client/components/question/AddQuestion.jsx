@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { createQuestion, getSubjects } from "../../utils/QuizzService";
 
 const AddQuestion = () => {
-  const [question, setQuestion] = useState("");
+  const [question, setQuestionText] = useState("");
   const [questionType, setQuestionType] = useState("single");
   const [choices, setChoices] = useState([""]);
   const [correctAnswers, setCorrectAnswers] = useState([""]);
@@ -16,14 +17,14 @@ const AddQuestion = () => {
 
   const fetchSubjects = async () => {
     try {
-      const subjectData = await getSubjects();
-      setSubjectOptions(subjectData);
+      const subjectsData = await getSubjects();
+      setSubjectOptions(subjectsData);
     } catch (error) {
       console.error(error);
     }
   };
 
-  const handleAddChoice = async () => {
+  const handleAddChoice = () => {
     const lastChoice = choices[choices.length - 1];
     const lastChoiceLetter = lastChoice ? lastChoice.charAt(0) : "A";
     const newChoiceLetter = String.fromCharCode(
@@ -34,7 +35,7 @@ const AddQuestion = () => {
   };
 
   const handleRemoveChoice = (index) => {
-    setChoices(choices.filter((choices, i) => i != index));
+    setChoices(choices.filter((choice, i) => i !== index));
   };
 
   const handleChoiceChange = (index, value) => {
@@ -69,10 +70,13 @@ const AddQuestion = () => {
             ? choiceLetter
             : null;
         }),
+
         subject,
       };
+
       await createQuestion(result);
-      setQuestion("");
+
+      setQuestionText("");
       setQuestionType("single");
       setChoices([""]);
       setCorrectAnswers([""]);
@@ -93,26 +97,25 @@ const AddQuestion = () => {
   return (
     <div className="container">
       <div className="row justify-content-center">
-        <div className="col-md-6 mt-5">
+        <div className="col-md-6  mt-5">
           <div className="card">
             <div className="card-header">
-              <h5 className="card-title">Add New Question</h5>
+              <h5 className="card-title">Add New Questions</h5>
             </div>
             <div className="card-body">
               <form onSubmit={handleSubmit} className="p-2">
                 <div className="mb-3">
                   <label htmlFor="subject" className="form-label text-info">
-                    Select a subject
+                    Select a Subject
                   </label>
                   <select
-                    name=""
                     id="subject"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     className="form-control"
                   >
-                    <option value={""}>Select a Subject</option>
-                    <option value={"New"}>Add New Subject</option>
+                    <option value="">Select subject</option>
+                    <option value={"New"}>Add New</option>
                     {subjectOptions.map((option) => (
                       <option key={option} value={option}>
                         {option}
@@ -120,39 +123,43 @@ const AddQuestion = () => {
                     ))}
                   </select>
                 </div>
+
                 {subject === "New" && (
                   <div className="mb-3">
                     <label
                       htmlFor="new-subject"
                       className="form-label text-info"
                     >
-                      Add a New Subject
+                      Add New Subject
                     </label>
                     <input
                       type="text"
                       id="new-subject"
                       value={newSubject}
-                      onChange={(e) => setNewSubject(e.target.value)}
+                      onChange={(event) => setNewSubject(event.target.value)}
                       className="form-control"
                     />
                     <button
                       type="button"
-                      className="btn btn-outline-primary btn-sm mt-2"
                       onClick={handleAddSubject}
+                      className="btn btn-outline-primary mt-2"
                     >
                       Add Subject
                     </button>
                   </div>
                 )}
-                <div className="mb-2">
-                  <label htmlFor="question" className="form-label text-info">
+                <div className="mb-3">
+                  <label
+                    htmlFor="question-text"
+                    className="form-label text-info"
+                  >
                     Question
                   </label>
                   <textarea
-                    rows={4}
                     className="form-control"
+                    rows={4}
                     value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
+                    onChange={(e) => setQuestionText(e.target.value)}
                   ></textarea>
                 </div>
                 <div className="mb-3">
@@ -160,57 +167,58 @@ const AddQuestion = () => {
                     htmlFor="question-type"
                     className="form-label text-info"
                   >
-                    Question Type
+                    Question type
                   </label>
                   <select
-                    className="form-control"
                     id="question-type"
                     value={questionType}
-                    onChange={(e) => setQuestionType(e.target.value)}
+                    onChange={(event) => setQuestionType(event.target.value)}
+                    className="form-control"
                   >
-                    <option value={"single"}>Single Answer</option>
-                    <option value={"multiple"}>Multiple Answers</option>
+                    <option value="single">Single Answer</option>
+                    <option value="multiple">Multiple Answer</option>
                   </select>
                 </div>
                 <div className="mb-3">
-                  <label htmlFor="choices" className="form-label text-info">
+                  <label htmlFor="choices" className="form-label text-primary">
                     Choices
                   </label>
                   {choices.map((choice, index) => (
                     <div key={index} className="input-group mb-3">
                       <input
-                        className="form-control"
                         type="text"
                         value={choice}
                         onChange={(e) =>
                           handleChoiceChange(index, e.target.value)
                         }
+                        className="form-control"
                       />
                       <button
-                        className="btn btn-outline-danger btn-sm"
                         type="button"
                         onClick={() => handleRemoveChoice(index)}
+                        className="btn btn-outline-danger"
                       >
                         Remove
                       </button>
                     </div>
                   ))}
                   <button
-                    className="btn btn-outline-primary btn-sm"
                     type="button"
                     onClick={handleAddChoice}
+                    className="btn btn-outline-primary"
                   >
                     Add Choice
                   </button>
                 </div>
                 {questionType === "single" && (
                   <div className="mb-3">
-                    <label htmlFor="answer" className="form-label text-info">
+                    <label htmlFor="answer" className="form-label text-success">
                       Correct Answer
                     </label>
                     <input
-                      className="form-control"
                       type="text"
+                      className="form-control"
+                      id="answer"
                       value={correctAnswers[0]}
                       onChange={(e) =>
                         handleCorrectAnswerChange(0, e.target.value)
@@ -220,14 +228,14 @@ const AddQuestion = () => {
                 )}
                 {questionType === "multiple" && (
                   <div className="mb-3">
-                    <label htmlFor="answer" className="form-label text-info">
-                      Correct Answer (s)
+                    <label htmlFor="answer" className="form-label text-success">
+                      Correct Answer(s)
                     </label>
                     {correctAnswers.map((answer, index) => (
-                      <div>
+                      <div key={index} className="d-flex mb-2">
                         <input
-                          className="form-control"
                           type="text"
+                          className="form-control me-2"
                           value={answer}
                           onChange={(e) =>
                             handleCorrectAnswerChange(index, e.target.value)
@@ -236,8 +244,8 @@ const AddQuestion = () => {
                         {index > 0 && (
                           <button
                             type="button"
-                            className="btn btn-danger btn-sm"
-                            onClick={() => handleRemoveCorrectAnswer(i)}
+                            className="btn btn-danger"
+                            onClick={() => handleRemoveCorrectAnswer(index)}
                           >
                             Remove
                           </button>
@@ -253,9 +261,11 @@ const AddQuestion = () => {
                     </button>
                   </div>
                 )}
+
                 {!correctAnswers.length && (
                   <p>Please enter at least one correct answer.</p>
                 )}
+
                 <div className="btn-group">
                   <button
                     type="submit"
@@ -263,9 +273,12 @@ const AddQuestion = () => {
                   >
                     Save Question
                   </button>
-                  {/* <Link to={""} className="btn btn-outline-success mr-2">
-                                    Save Question
-                                </Link> */}
+                  <Link
+                    to={"/all-quizzes"}
+                    className="btn btn-outline-primary ml-2"
+                  >
+                    Back to existing questions
+                  </Link>
                 </div>
               </form>
             </div>
