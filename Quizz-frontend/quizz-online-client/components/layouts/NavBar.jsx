@@ -28,20 +28,8 @@ const Navbar = () => {
             </li>
 
             <li className="nav-item">
-              <NavLink className="nav-link" to={"/quizz-stepper"}>
+              <NavLink className="nav-link" to={"/quiz-stepper"}>
                 Take Quiz
-              </NavLink>
-            </li>
-
-            <li className="nav-item">
-              <NavLink className="nav-link" to={"/create-quizz"}>
-                Create quizz
-              </NavLink>
-            </li>
-
-            <li className="nav-item">
-              <NavLink className="nav-link" to={"/all-quizzes"}>
-                All quizzes
               </NavLink>
             </li>
           </ul>

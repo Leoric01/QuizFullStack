@@ -1,11 +1,12 @@
 import axios from "axios";
+
 export const api = axios.create({
   baseURL: "http://localhost:9192/api/quizzes",
 });
 
-export const createQuestion = async (quizzQuestion) => {
+export const createQuestion = async (quizQustion) => {
   try {
-    const response = await api.post("/create-new-question", quizzQuestion);
+    const response = await api.post("/create-new-question", quizQustion);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -22,10 +23,10 @@ export const getAllQuestions = async () => {
   }
 };
 
-export const fetchQuizzForUser = async (number, subject) => {
+export const fetchQuizForUser = async (number, subject) => {
   try {
     const response = await api.get(
-      `/quizz/fetch-questions-for-user?numOfQuestions=${number}&subject=${subject}`
+      `/quiz/fetch-questions-for-user?numOfQuestions=${number}&subject=${subject}`
     );
     return response.data;
   } catch (error) {
@@ -40,13 +41,12 @@ export const getSubjects = async () => {
     return response.data;
   } catch (error) {
     console.error(error);
-    return [];
   }
 };
 
 export const updateQuestion = async (id, question) => {
   try {
-    const response = await api.put(`/quizz/${id}/update`, question);
+    const response = await api.put(`/question/${id}/update`, question);
     return response.data;
   } catch (error) {
     console.error(error);
@@ -68,6 +68,5 @@ export const deleteQuestion = async (id) => {
     return response.data;
   } catch (error) {
     console.error(error);
-    return [];
   }
 };

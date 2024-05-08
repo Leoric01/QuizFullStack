@@ -15,6 +15,7 @@ import java.util.Optional;
 
 import static org.springframework.http.HttpStatus.CREATED;
 
+@CrossOrigin("http://localhost:5173")
 @RestController
 @RequestMapping("/api/quizzes")
 @RequiredArgsConstructor
@@ -22,49 +23,56 @@ public class QuestionController {
     private final IQuestionService questionService;
 
     @PostMapping("/create-new-question")
-    public ResponseEntity<Question> createQuestion(@Valid @RequestBody Question question) {
+    public ResponseEntity<Question> createQuestion(@Valid @RequestBody Question question){
         Question createdQuestion = questionService.createQuestion(question);
         return ResponseEntity.status(CREATED).body(createdQuestion);
     }
 
     @GetMapping("/all-questions")
-    public ResponseEntity<List<Question>> getAllQuestions() {
+    public ResponseEntity<List<Question>> getAllQuestions(){
         List<Question> questions = questionService.getAllQuestions();
         return ResponseEntity.ok(questions);
     }
+
     @GetMapping("/question/{id}")
     public ResponseEntity<Question> getQuestionById(@PathVariable Long id) throws ChangeSetPersister.NotFoundException {
-        Optional<Question> question = questionService.getQuestionById(id);
-        if (question.isPresent()) {
-            return ResponseEntity.ok(question.get());
-        } else {
+        Optional<Question> theQuestion = questionService.getQuestionById(id);
+        if (theQuestion.isPresent()){
+            return ResponseEntity.ok(theQuestion.get());
+        }else {
             throw new ChangeSetPersister.NotFoundException();
         }
     }
-    @PutMapping("/quizz/{id}/update")
-    public ResponseEntity<Question> updateQuestion(@PathVariable Long id,
-                                                   @Valid @RequestBody Question question) throws ChangeSetPersister.NotFoundException {
+
+    @PutMapping("/question/{id}/update")
+    public ResponseEntity<Question> updateQuestion(
+            @PathVariable Long id, @RequestBody Question question) throws ChangeSetPersister.NotFoundException {
         Question updatedQuestion = questionService.updateQuestion(id, question);
         return ResponseEntity.ok(updatedQuestion);
     }
+
     @DeleteMapping("/question/{id}/delete")
-    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteQuestion(@PathVariable Long id){
         questionService.deleteQuestion(id);
         return ResponseEntity.noContent().build();
     }
     @GetMapping("/subjects")
-    public ResponseEntity<List<String>> getAllSubjects() {
+    public ResponseEntity<List<String>> getAllSubjects(){
         List<String> subjects = questionService.getAllSubjects();
         return ResponseEntity.ok(subjects);
     }
-    @GetMapping("/quizz/fetch-questions-for-user")
-    public ResponseEntity<List<Question>> getQuestionsForUser(@RequestParam Integer numOfQuestions,
-                                                              @RequestParam String subject) {
+
+    @GetMapping("/quiz/fetch-questions-for-user")
+    public ResponseEntity<List<Question>> getQuestionsForUser(
+            @RequestParam Integer numOfQuestions, @RequestParam String subject){
         List<Question> allQuestions = questionService.getQuestionsForUser(numOfQuestions, subject);
+
         List<Question> mutableQuestions = new ArrayList<>(allQuestions);
         Collections.shuffle(mutableQuestions);
+
         int availableQuestions = Math.min(numOfQuestions, mutableQuestions.size());
         List<Question> randomQuestions = mutableQuestions.subList(0, availableQuestions);
         return ResponseEntity.ok(randomQuestions);
     }
+
 }

@@ -7,7 +7,12 @@ const AnswerOptions = ({
   handleCheckboxChange,
 }) => {
   if (!question) {
-    return <div>No questions available</div>;
+    return (
+      <div>
+        No questions available, <br /> you may try agian by reducing your
+        requested number of questions on this topic
+      </div>
+    );
   }
 
   const { id, questionType, choices } = question;
@@ -18,14 +23,17 @@ const AnswerOptions = ({
         {choices.sort().map((choice, index) => (
           <div key={choice} className="form-check mb-3">
             <input
-              type="radio"
               className="form-check-input"
+              type="radio"
               id={choice}
+              name={question.id}
               value={choice}
               checked={isChecked(question.id, choice)}
               onChange={() => handleAnswerChange(id, choice)}
             />
-            <label className="form-check-label ms-2">{choice}</label>
+            <label htmlFor={choice} className="form-check-label ms-2">
+              {choice}
+            </label>
           </div>
         ))}
       </div>
@@ -33,19 +41,20 @@ const AnswerOptions = ({
   } else if (questionType === "multiple") {
     return (
       <div>
-        <p>Select all that apply</p>
         {choices.sort().map((choice, index) => (
           <div key={choice} className="form-check mb-3">
             <input
-              type="checkbox"
               className="form-check-input"
+              type="checkbox"
               id={choice}
-              value={choice}
               name={question.id}
+              value={choice}
               checked={isChecked(question.id, choice)}
               onChange={() => handleCheckboxChange(id, choice)}
             />
-            <label className="form-check-label ms-2">{choice}</label>
+            <label htmlFor={choice} className="form-check-label ms-2">
+              {choice}
+            </label>
           </div>
         ))}
       </div>

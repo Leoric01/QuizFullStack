@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
+
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getQuestionById, updateQuestion } from "../../utils/QuizzService";
-import { useParams } from "react-router-dom";
 
 const UpdateQuestion = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
   const [question, setQuestion] = useState("");
   const [choices, setChoices] = useState([""]);
-  const [correctAnswers, setCorrectAnswers] = useState([""]);
+  const [correctAnswers, setCorrectAnswers] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-
-  const { id } = useParams();
 
   useEffect(() => {
     fetchQuestion();
@@ -42,7 +43,7 @@ const UpdateQuestion = () => {
     setCorrectAnswers(e.target.value);
   };
 
-  const handleQuestionUpdate = async (e) => {
+  const handleUpdate = async (e) => {
     e.preventDefault();
     try {
       const updatedQuestion = {
@@ -54,22 +55,23 @@ const UpdateQuestion = () => {
           .map((answer) => answer.trim()),
       };
       await updateQuestion(id, updatedQuestion);
-      // TODO:  navigate back to all questions page
+      navigate("/all-quizzes");
     } catch (error) {
       console.error(error);
     }
   };
+
   if (isLoading) {
     return <p>Loading...</p>;
   }
 
   return (
-    <section className="container">
+    <div className="container">
       <h4 className="mt-5" style={{ color: "GrayText" }}>
-        Update Quizz Question
+        Update Quiz Question
       </h4>
-      <div className="col-md-8">
-        <form onSubmit={handleQuestionUpdate}>
+      <div className="col-8">
+        <form onSubmit={handleUpdate}>
           <div className="form-group">
             <label className="text-info">Question:</label>
             <textarea
@@ -77,15 +79,16 @@ const UpdateQuestion = () => {
               rows={4}
               value={question}
               onChange={handleQuestionChange}
-            />
+            ></textarea>
           </div>
+
           <div className="form-group">
             <label className="text-info">Choices:</label>
             {choices.map((choice, index) => (
               <input
                 key={index}
-                className="form-control mb-4"
                 type="text"
+                className="form-control mb-4"
                 value={choice}
                 onChange={(e) => handleChoiceChange(index, e)}
               />
@@ -94,21 +97,24 @@ const UpdateQuestion = () => {
           <div className="form-group">
             <label className="text-info">Correct Answer(s):</label>
             <input
-              className="form-control mb-4"
               type="text"
+              className="form-control mb-4"
               value={correctAnswers}
               onChange={handleCorrectAnswerChange}
             />
           </div>
+
           <div className="btn-group">
             <button type="submit" className="btn btn-sm btn-outline-warning">
-              Update Question
+              Update question
             </button>
-            {/* TODO: Link back to all questions */}
+            <Link to={"/all-quizzes"} className="btn btn-outline-primary ml-2">
+              Back to all questions
+            </Link>
           </div>
         </form>
       </div>
-    </section>
+    </div>
   );
 };
 

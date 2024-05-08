@@ -1,31 +1,32 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { fetchQuizzForUser } from "../../utils/QuizzService";
+import { useNavigate, useLocation } from "react-router-dom";
+import { fetchQuizForUser } from "../../utils/QuizService";
+import AnswerOptions from "../../utils/AnswerOptions";
 
-const Quizz = () => {
-  const [quizzQuestions, setQuizzQuestions] = useState([
+const Quiz = () => {
+  const [quizQuestions, setQuizQuestions] = useState([
     { id: "", correctAnswers: "", question: "", questionType: "" },
   ]);
   const [selectedAnswers, setSelectedAnswers] = useState([
-    { id: "", answer: [""] },
+    { id: "", answer: "" },
   ]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalScores, setTotalScores] = useState(0);
   const location = useLocation();
   const navigate = useNavigate();
-  const { selectedSubject, selectedNumOfQuestions } = location.state;
+  const { selectedSubject, selectedNumQuestions } = location.state;
 
   useEffect(() => {
-    fetchQuizzData();
+    fetchQuizData();
   }, []);
 
-  const fetchQuizzData = async () => {
-    if (selectedNumOfQuestions && selectedSubject) {
-      const questions = await fetchQuizzForUser(
-        selectedNumOfQuestions,
+  const fetchQuizData = async () => {
+    if (selectedNumQuestions && selectedSubject) {
+      const questions = await fetchQuizForUser(
+        selectedNumQuestions,
         selectedSubject
       );
-      setQuizzQuestions(questions);
+      setQuizQuestions(questions);
     }
   };
 
@@ -37,15 +38,18 @@ const Quizz = () => {
       const selectedAnswer = Array.isArray(answer)
         ? answer.map((a) => a.charAt(0))
         : answer.charAt(0);
+
       if (existingAnswerIndex !== -1) {
         const updatedAnswers = [...prevAnswers];
         updatedAnswers[existingAnswerIndex] = {
           id: questionId,
-          answer: [selectedAnswer],
+          answer: selectedAnswer,
         };
+        console.log(updatedAnswers);
         return updatedAnswers;
       } else {
-        const newAnswer = { id: questionId, answer: [selectedAnswer] };
+        const newAnswer = { id: questionId, answer: selectedAnswer };
+
         return [...prevAnswers, newAnswer];
       }
     });
@@ -72,21 +76,23 @@ const Quizz = () => {
       const selectedAnswer = Array.isArray(choice)
         ? choice.map((c) => c.charAt(0))
         : choice.charAt(0);
+
       if (existingAnswerIndex !== -1) {
         const updatedAnswers = [...prevAnswers];
-        const existingAnswers = updatedAnswers[existingAnswerIndex].answer;
+        const existingAnswer = updatedAnswers[existingAnswerIndex].answer;
         let newAnswer;
-        if (Array.isArray(existingAnswers)) {
-          newAnswer = existingAnswers.includes(selectedAnswer)
-            ? existingAnswers.filter((a) => a !== selectedAnswer)
-            : [...existingAnswers, selectedAnswer];
+        if (Array.isArray(existingAnswer)) {
+          newAnswer = existingAnswer.includes(selectedAnswer)
+            ? existingAnswer.filter((a) => a !== selectedAnswer)
+            : [...existingAnswer, selectedAnswer];
         } else {
-          newAnswer = [existingAnswers, selectedAnswer];
+          newAnswer = [existingAnswer, selectedAnswer];
         }
         updatedAnswers[existingAnswerIndex] = {
           id: questionId,
           answer: newAnswer,
         };
+        console.log(updatedAnswers);
         return updatedAnswers;
       } else {
         const newAnswer = { id: questionId, answer: [selectedAnswer] };
@@ -97,36 +103,35 @@ const Quizz = () => {
 
   const handleSubmit = () => {
     let scores = 0;
-    quizzQuestions.forEach((question) => {
+    quizQuestions.forEach((question) => {
       const selectedAnswer = selectedAnswers.find(
         (answer) => answer.id === question.id
       );
       if (selectedAnswer) {
         const selectedOptions = Array.isArray(selectedAnswer.answer)
-          ? selectedAnswer.answer
-          : [selectedAnswer.answer];
+          ? selectedAnswer.answer.map((option) => option.charAt(0))
+          : [selectedAnswer.answer.charAt(0)];
         const correctOptions = Array.isArray(question.correctAnswers)
-          ? question.correctAnswers
-          : [question.correctAnswers];
-        const isCorrect = selectedOptions.every((option) =>
-          correctOptions.includes(option)
-        );
+          ? question.correctAnswers.map((option) => option.charAt(0))
+          : [question.correctAnswers.charAt(0)];
+        const isCorrect =
+          selectedOptions.length === correctOptions.length &&
+          selectedOptions.every((option) => correctOptions.includes(option));
         if (isCorrect) {
           scores++;
         }
       }
     });
     setTotalScores(scores);
-    setSelectedAnswers([{ id: "", answer: [""] }]);
+    setSelectedAnswers([]);
     setCurrentQuestionIndex(0);
-    navigate("/quizz-result", {
-      state: { quizzQuestions, totalScores: scores },
-    });
+    navigate("/quiz-result", { state: { quizQuestions, totalScores: scores } });
   };
 
   const handleNextQuestion = () => {
-    if (currentQuestionIndex < quizzQuestions.length - 1) {
+    if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      console.log(selectedAnswers);
     } else {
       handleSubmit();
     }
@@ -141,46 +146,50 @@ const Quizz = () => {
   return (
     <div className="p-5">
       <h3 className="text-info">
-        Question {quizzQuestions.length > 0 ? currentQuestionIndex + 1 : 0} of{" "}
-        {quizzQuestions.length}
+        Question {quizQuestions.length > 0 ? currentQuestionIndex + 1 : 0} of{" "}
+        {quizQuestions.length}
       </h3>
+
       <h4 className="mb-4">
-        {quizzQuestions[currentQuestionIndex]?.question}
-        <AnswerOptions
-          question={quizzQuestions[currentQuestionIndex]}
-          isChecked={isChecked}
-          handleAnswerChange={handleAnswerChange}
-          handleCheckboxChange={handleCheckboxChange}
-        />
-        <div className="mt-4">
-          <button
-            className="btn btn-sm btn-primary me-2"
-            onClick={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
-          >
-            Previous Question
-          </button>
-          <button
-            className={`btn btn-info btn-sm ${
-              currentQuestionIndex === quizzQuestions.length - 1
-            } && "btn btn-warning btn-sm`}
-            disabled={
-              !selectedAnswers.find(
-                (answer) =>
-                  answer.id === quizzQuestions[currentQuestionIndex]?.id ||
-                  answer.answer !== ""
-              )
-            }
-            onClick={handleNextQuestion}
-          >
-            {currentQuestionIndex === quizzQuestions.length - 1
-              ? "Submit Quizz"
-              : "Next question"}
-          </button>
-        </div>
+        <pre>{quizQuestions[currentQuestionIndex]?.question}</pre>
       </h4>
+
+      <AnswerOptions
+        question={quizQuestions[currentQuestionIndex]}
+        isChecked={isChecked}
+        handleAnswerChange={handleAnswerChange}
+        handleCheckboxChange={handleCheckboxChange}
+      />
+
+      <div className="mt-4">
+        <button
+          className="btn btn-sm btn-primary me-2"
+          onClick={handlePreviousQuestion}
+          disabled={currentQuestionIndex === 0}
+        >
+          Previous question
+        </button>
+        <button
+          className={`btn btn-sm btn-info ${
+            currentQuestionIndex === quizQuestions.length - 1 &&
+            "btn btn-sm btn-warning"
+          }`}
+          onClick={handleNextQuestion}
+          disabled={
+            !selectedAnswers.find(
+              (answer) =>
+                answer.id === quizQuestions[currentQuestionIndex]?.id ||
+                answer.answer.length > 0
+            )
+          }
+        >
+          {currentQuestionIndex === quizQuestions.length - 1
+            ? "Submit quiz"
+            : "Next question"}
+        </button>
+      </div>
     </div>
   );
 };
 
-export default Quizz;
+export default Quiz;
