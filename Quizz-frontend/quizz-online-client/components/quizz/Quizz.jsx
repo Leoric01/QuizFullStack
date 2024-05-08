@@ -7,7 +7,7 @@ const Quizz = () => {
     { id: "", correctAnswers: "", question: "", questionType: "" },
   ]);
   const [selectedAnswers, setSelectedAnswers] = useState([
-    { id: "", answer: "" },
+    { id: "", answer: [""] },
   ]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [totalScores, setTotalScores] = useState(0);
@@ -41,11 +41,11 @@ const Quizz = () => {
         const updatedAnswers = [...prevAnswers];
         updatedAnswers[existingAnswerIndex] = {
           id: questionId,
-          answer: selectedAnswer,
+          answer: [selectedAnswer],
         };
         return updatedAnswers;
       } else {
-        const newAnswer = { id: questionId, answer: selectedAnswer };
+        const newAnswer = { id: questionId, answer: [selectedAnswer] };
         return [...prevAnswers, newAnswer];
       }
     });
@@ -111,11 +111,76 @@ const Quizz = () => {
         const isCorrect = selectedOptions.every((option) =>
           correctOptions.includes(option)
         );
+        if (isCorrect) {
+          scores++;
+        }
       }
+    });
+    setTotalScores(scores);
+    setSelectedAnswers([{ id: "", answer: [""] }]);
+    setCurrentQuestionIndex(0);
+    navigate("/quizz-result", {
+      state: { quizzQuestions, totalScores: scores },
     });
   };
 
-  return <div>Quizz</div>;
+  const handleNextQuestion = () => {
+    if (currentQuestionIndex < quizzQuestions.length - 1) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+    } else {
+      handleSubmit();
+    }
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex((prevIndex) => prevIndex - 1);
+    }
+  };
+
+  return (
+    <div className="p-5">
+      <h3 className="text-info">
+        Question {quizzQuestions.length > 0 ? currentQuestionIndex + 1 : 0} of{" "}
+        {quizzQuestions.length}
+      </h3>
+      <h4 className="mb-4">
+        {quizzQuestions[currentQuestionIndex]?.question}
+        <AnswerOptions
+          question={quizzQuestions[currentQuestionIndex]}
+          isChecked={isChecked}
+          handleAnswerChange={handleAnswerChange}
+          handleCheckboxChange={handleCheckboxChange}
+        />
+        <div className="mt-4">
+          <button
+            className="btn btn-sm btn-primary me-2"
+            onClick={handlePreviousQuestion}
+            disabled={currentQuestionIndex === 0}
+          >
+            Previous Question
+          </button>
+          <button
+            className={`btn btn-info btn-sm ${
+              currentQuestionIndex === quizzQuestions.length - 1
+            } && "btn btn-warning btn-sm`}
+            disabled={
+              !selectedAnswers.find(
+                (answer) =>
+                  answer.id === quizzQuestions[currentQuestionIndex]?.id ||
+                  answer.answer !== ""
+              )
+            }
+            onClick={handleNextQuestion}
+          >
+            {currentQuestionIndex === quizzQuestions.length - 1
+              ? "Submit Quizz"
+              : "Next question"}
+          </button>
+        </div>
+      </h4>
+    </div>
+  );
 };
 
 export default Quizz;
